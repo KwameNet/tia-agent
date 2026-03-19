@@ -1,0 +1,21 @@
+# .NET build output
+bin/
+obj/
+
+# NuGet
+*.user
+*.suo
+.nuget/
+packages/
+
+# VS / Rider
+.vs/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets / local overrides
+.claude/settings.local.json

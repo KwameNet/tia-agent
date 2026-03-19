@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <PlatformTarget>x64</PlatformTarget>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>TiaMcpServer</AssemblyName>
+    <!-- Allow unsafe: needed for dynamic assembly loading interop -->
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ModelContextProtocol" Version="0.1.0-preview.*" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.*" />
+    <!-- Microsoft.Win32.Registry gives us clean registry access on Windows -->
+    <PackageReference Include="Microsoft.Win32.Registry" Version="5.*" />
+  </ItemGroup>
+
+</Project>

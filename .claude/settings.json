@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "tia-portal": {
+      "command": "dotnet",
+      "args": [
+        "run",
+        "--project", "TiaMcpServer/TiaMcpServer.csproj",
+        "--configuration", "Release"
+      ],
+      "env": {}
+    }
+  }
+}
