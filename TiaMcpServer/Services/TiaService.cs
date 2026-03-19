@@ -17,6 +17,10 @@ namespace TiaMcpServer.Services
         private dynamic? _portal;
         private dynamic? _project;
 
+        // Expose to TiaReadService via internal access within the same assembly
+        internal dynamic? Project => _project;
+        internal Assembly Asm     => _asm;
+
         // ── Openness assembly + key types ────────────────────────────────────
         private readonly Assembly   _asm;
         private readonly Type       _tiaPortalType;
