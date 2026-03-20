@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TiaMcpServer", "TiaMcpServer\TiaMcpServer.csproj", "{AA0ABC91-9682-2F24-4CEA-6EF6AEDCB40A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AA0ABC91-9682-2F24-4CEA-6EF6AEDCB40A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA0ABC91-9682-2F24-4CEA-6EF6AEDCB40A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA0ABC91-9682-2F24-4CEA-6EF6AEDCB40A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA0ABC91-9682-2F24-4CEA-6EF6AEDCB40A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {45C0582B-681D-4AD6-ABAA-4B4B7F823763}
+	EndGlobalSection
+EndGlobal

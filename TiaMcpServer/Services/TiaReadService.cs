@@ -308,16 +308,59 @@ namespace TiaMcpServer.Services
 
         private IEnumerable<dynamic> GetAllPlcSoftware()
         {
-            var softwareContainerType =
-                _tia.Asm.GetType("Siemens.Engineering.HW.Features.SoftwareContainer")!;
+            var softwareContainerType = _tia.Asm.GetType("Siemens.Engineering.HW.Features.SoftwareContainer");
+            var plcSoftwareType       = _tia.Asm.GetType("Siemens.Engineering.SW.PlcSoftware");
 
             foreach (dynamic device in _tia.Project!.Devices)
-                foreach (dynamic item in device.DeviceItems)
+            {
+                var items = new List<object>();
+                try { foreach (dynamic item in (dynamic)device.DeviceItems) items.Add((object)item); }
+                catch { continue; }
+
+                foreach (var item in items)
                 {
-                    dynamic? sw = item.GetService(softwareContainerType)?.Software;
-                    if (sw != null && sw.GetType().Name == "PlcSoftware")
-                        yield return sw;
+                    dynamic? sw = TryGetPlcSoftware(item, softwareContainerType, plcSoftwareType);
+                    if (sw != null) yield return sw;
                 }
+            }
+        }
+
+        private dynamic? TryGetPlcSoftware(object item, Type? containerType, Type? plcSwType)
+        {
+            if (containerType != null)
+            {
+                try
+                {
+                    var container = CallGetService(item, containerType);
+                    if (container != null)
+                    {
+                        var sw = container.GetType().GetProperty("Software")?.GetValue(container);
+                        if (sw?.GetType().Name == "PlcSoftware") return (dynamic)sw;
+                    }
+                }
+                catch { }
+            }
+
+            if (plcSwType != null)
+            {
+                try
+                {
+                    var sw = CallGetService(item, plcSwType);
+                    if (sw?.GetType().Name == "PlcSoftware") return (dynamic)sw;
+                }
+                catch { }
+            }
+
+            return null;
+        }
+
+        private static object? CallGetService(object target, Type serviceType)
+        {
+            var method = target.GetType()
+                .GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                .FirstOrDefault(m => m.Name == "GetService" && m.IsGenericMethodDefinition)
+                ?.MakeGenericMethod(serviceType);
+            return method?.Invoke(target, null);
         }
 
         private IEnumerable<dynamic> GetTargetPlcs(string plcName)

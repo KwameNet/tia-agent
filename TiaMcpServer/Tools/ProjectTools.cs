@@ -6,6 +6,10 @@ using TiaMcpServer.Services;
 [McpServerToolType]
 public static class ProjectTools
 {
+    [McpServerTool, Description("Attach to a TIA Portal instance that is already running with a project open. Use this instead of TiaOpenProject when TIA Portal is already open on the desktop.")]
+    public static string TiaAttach(TiaService tia)
+        => JsonSerializer.Serialize(tia.AttachToRunning());
+
     [McpServerTool, Description("Open a TIA Portal project file. Accepts .ap15, .ap16, .ap17, .ap18, .ap19, or .ap20.")]
     public static string TiaOpenProject(
         TiaService tia,

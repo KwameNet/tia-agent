@@ -1,6 +1,8 @@
 # .NET build output
 bin/
 obj/
+**/publish/
+**/publish2/
 
 # NuGet
 *.user

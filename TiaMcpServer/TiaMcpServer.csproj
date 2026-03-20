@@ -2,8 +2,9 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net48</TargetFramework>
     <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>TiaMcpServer</AssemblyName>
@@ -12,8 +13,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="ModelContextProtocol" Version="0.1.0-preview.*" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.*" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.*" />
     <!-- Microsoft.Win32.Registry gives us clean registry access on Windows -->
     <PackageReference Include="Microsoft.Win32.Registry" Version="5.*" />
   </ItemGroup>
