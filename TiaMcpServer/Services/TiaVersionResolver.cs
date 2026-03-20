@@ -31,6 +31,7 @@ namespace TiaMcpServer.Services
             { "18",   "V18"   },
             { "19",   "V19"   },
             { "20",   "V20"   },
+            { "20.0", "V20"   },  // V20 registers as "20.0" in the registry
         };
 
         public record TiaInstallation(string Version, string Label, string DllPath);
@@ -53,32 +54,57 @@ namespace TiaMcpServer.Services
                     using var subKey = baseKey.OpenSubKey(versionKey);
                     if (subKey == null) continue;
 
-                    // The registry value "InstallationPath" points to the TIA Portal root.
-                    var installPath = subKey.GetValue("InstallationPath") as string;
-                    if (string.IsNullOrWhiteSpace(installPath)) continue;
-
-                    // Resolve the PublicAPI DLL path from the installation root.
-                    // Pattern: <InstallationPath>\PublicAPI\<Label>\Siemens.Engineering.dll
                     if (!KnownVersions.TryGetValue(versionKey, out var label))
                         label = $"V{versionKey}"; // fallback for future versions
 
-                    var dllPath = Path.Combine(
-                        installPath, "PublicAPI", label, "Siemens.Engineering.dll");
-
-                    if (!File.Exists(dllPath))
+                    // ── Layout A (V15.1–V19): InstallationPath value present ───────────
+                    // Pattern: <InstallationPath>\PublicAPI\<Label>\Siemens.Engineering.dll
+                    var installPath = subKey.GetValue("InstallationPath") as string;
+                    if (!string.IsNullOrWhiteSpace(installPath))
                     {
-                        // Fallback: some installations place the DLL directly under PublicAPI
-                        dllPath = Path.Combine(installPath, "PublicAPI", "Siemens.Engineering.dll");
-                        if (!File.Exists(dllPath)) continue;
+                        var dllPath = Path.Combine(
+                            installPath, "PublicAPI", label, "Siemens.Engineering.dll");
+
+                        if (!File.Exists(dllPath))
+                        {
+                            // Fallback: some versions place the DLL directly under PublicAPI
+                            dllPath = Path.Combine(installPath, "PublicAPI", "Siemens.Engineering.dll");
+                        }
+
+                        if (File.Exists(dllPath))
+                        {
+                            found.Add(new TiaInstallation(versionKey, label, dllPath));
+                            continue;
+                        }
                     }
 
-                    found.Add(new TiaInstallation(versionKey, label, dllPath));
+                    // ── Layout B (V20+): DLL path stored in PublicAPI\{assemblyVer}\Siemens.Engineering ──
+                    // Pattern: HKLM\...\Openness\{ver}\PublicAPI\{x.0.0.0}\Siemens.Engineering = <path>
+                    using var publicApiKey = subKey.OpenSubKey("PublicAPI");
+                    if (publicApiKey == null) continue;
+
+                    string? resolvedDll = null;
+                    foreach (var asmVer in publicApiKey.GetSubKeyNames().OrderByDescending(s => s))
+                    {
+                        using var asmKey = publicApiKey.OpenSubKey(asmVer);
+                        if (asmKey == null) continue;
+                        var candidate = asmKey.GetValue("Siemens.Engineering") as string;
+                        if (!string.IsNullOrWhiteSpace(candidate) && File.Exists(candidate))
+                        {
+                            resolvedDll = candidate;
+                            break;
+                        }
+                    }
+
+                    if (resolvedDll != null)
+                        found.Add(new TiaInstallation(versionKey, label, resolvedDll));
                 }
             }
 
             // Deduplicate (both registry hives may return the same entry) and sort descending.
             return found
-                .DistinctBy(i => i.DllPath)
+                .GroupBy(i => i.DllPath)
+                .Select(g => g.First())
                 .OrderByDescending(i => i.Version, StringComparer.OrdinalIgnoreCase)
                 .ToList();
         }
@@ -100,11 +126,12 @@ namespace TiaMcpServer.Services
 
             if (!string.IsNullOrWhiteSpace(preferredVersion))
             {
-                // Normalize: accept "V18", "v18", "18"
+                // Normalize: accept "V18", "v18", "18", "V20", "20"
                 var normalized = preferredVersion.TrimStart('v', 'V');
                 var match = installations.FirstOrDefault(
-                    i => i.Version == normalized || i.Label.Equals(
-                        $"V{normalized}", StringComparison.OrdinalIgnoreCase));
+                    i => i.Version == normalized ||
+                         i.Version.StartsWith(normalized + ".") ||
+                         i.Label.Equals($"V{normalized}", StringComparison.OrdinalIgnoreCase));
 
                 if (match == null)
                 {
