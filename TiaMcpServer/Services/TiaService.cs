@@ -204,6 +204,89 @@ namespace TiaMcpServer.Services
             catch (Exception ex) { return Error(ex); }
         }
 
+        // ── Attach to running instance ───────────────────────────────────────
+
+        /// <summary>
+        /// Lists all running TIA Portal processes that can be attached to.
+        /// </summary>
+        public object ListRunningInstances()
+        {
+            try
+            {
+                var processes = GetRunningProcesses();
+                var list = processes.Select((p, i) => new
+                {
+                    index       = i,
+                    id          = (int)p.Id,
+                    mode        = p.Mode.ToString(),
+                    projectPath = p.ProjectPath?.FullName ?? "(no project)"
+                }).ToList();
+                return new { success = true, count = list.Count, instances = list };
+            }
+            catch (Exception ex) { return Error(ex); }
+        }
+
+        /// <summary>
+        /// Attaches to an already-running TIA Portal instance.
+        /// If processIndex is omitted and exactly one instance is running it is used automatically.
+        /// After attaching, the first open project (if any) becomes the active project.
+        /// </summary>
+        public object AttachToRunningInstance(int? processIndex = null)
+        {
+            try
+            {
+                var processes = GetRunningProcesses().ToList();
+
+                if (processes.Count == 0)
+                    return new { success = false, message = "No running TIA Portal instances found." };
+
+                if (processIndex == null && processes.Count > 1)
+                    return new { success = false, message = $"{processes.Count} instances are running. Specify processIndex (0-{processes.Count - 1})." };
+
+                var target = processes[processIndex ?? 0];
+
+                // Dispose any existing portal before attaching.
+                _portal?.Dispose();
+                _portal  = null;
+                _project = null;
+
+                _portal = target.Attach();
+
+                // Grab the first open project, if any.
+                dynamic? proj = null;
+                foreach (dynamic p in _portal!.Projects)
+                { proj = p; break; }
+                _project = proj;
+
+                var projectName = _project != null ? (string)_project.Name : "(none)";
+                return new
+                {
+                    success     = true,
+                    message     = $"Attached to TIA Portal process {(int)target.Id}.",
+                    project     = projectName,
+                    processId   = (int)target.Id,
+                    mode        = target.Mode.ToString()
+                };
+            }
+            catch (Exception ex) { return Error(ex); }
+        }
+
+        private IEnumerable<dynamic> GetRunningProcesses()
+        {
+            // TiaPortal.GetProcesses() is a static method returning IList<TiaPortalProcess>
+            var method = _tiaPortalType.GetMethod(
+                "GetProcesses",
+                BindingFlags.Static | BindingFlags.Public,
+                null, Type.EmptyTypes, null)
+                ?? throw new InvalidOperationException(
+                    "TiaPortal.GetProcesses() not found — check your Openness API version.");
+
+            var result = method.Invoke(null, null)
+                ?? throw new InvalidOperationException("TiaPortal.GetProcesses() returned null.");
+
+            return ((System.Collections.IEnumerable)result).Cast<dynamic>();
+        }
+
         // ── Version info tool ────────────────────────────────────────────────
 
         /// <summary>
