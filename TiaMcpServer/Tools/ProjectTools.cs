@@ -29,4 +29,17 @@ public static class ProjectTools
     [McpServerTool, Description("List all installed TIA Portal versions detected on this machine.")]
     public static string TiaListInstalledVersions(TiaService tia)
         => JsonSerializer.Serialize(tia.GetInstalledVersions());
+
+    [McpServerTool, Description("List all currently running TIA Portal processes that can be attached to via TiaAttach.")]
+    public static string TiaListRunningInstances(TiaService tia)
+        => JsonSerializer.Serialize(tia.ListRunningInstances());
+
+    [McpServerTool, Description(
+        "Attach to an already-running TIA Portal instance (one that was opened by the user, not by this tool). " +
+        "Call TiaListRunningInstances first if you need to pick a specific process. " +
+        "If only one instance is running the processIndex can be omitted.")]
+    public static string TiaAttach(
+        TiaService tia,
+        [Description("Zero-based index of the process from TiaListRunningInstances. Omit when only one instance is running.")] int? processIndex = null)
+        => JsonSerializer.Serialize(tia.AttachToRunningInstance(processIndex));
 }
