@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "tia-portal": {
-      "command": "C:\\Users\\fmensah\\Documents\\Google Drive\\Projects\\TiaFlow\\tia-agent\\TiaMcpServer\\publish\\TiaMcpServer.exe",
-      "args": [],
+      "command": "dotnet",
+      "args": ["run", "--project", "TiaMcpServer", "-c", "Release"],
       "env": {}
     }
   }

@@ -1,0 +1,43 @@
+FUNCTION FC_MotorControl : VOID
+TITLE = 'Motor Start/Stop Control with Ramp-Up and Maintenance Warning'
+VERSION : '1.0'
+
+VAR_INPUT
+    diStartBtn : BOOL;   // Momentary start button — latches motor ON
+    diStopBtn  : BOOL;   // Momentary stop button — stop takes priority
+END_VAR
+
+VAR_OUTPUT
+    doMotorRun     : BOOL;  // Motor run command output
+    doRampComplete : BOOL;  // TRUE after 5-second ramp-up
+    doMaintWarning : BOOL;  // TRUE after 60 minutes continuous running
+END_VAR
+
+VAR_IN_OUT
+    MotorLatch  : BOOL;      // Latched motor state — persists between scans
+    RampTimer   : IEC_TIMER; // TON instance for 5-second ramp-up delay
+    MaintTimer  : IEC_TIMER; // TON instance for 60-minute maintenance window
+END_VAR
+
+BEGIN
+
+    // --- Stop has priority over start ---
+    IF diStopBtn THEN
+        MotorLatch := FALSE;
+    ELSIF diStartBtn THEN
+        MotorLatch := TRUE;
+    END_IF;
+
+    // --- Drive motor run output from latch ---
+    doMotorRun := MotorLatch;
+
+    // --- 5-second ramp-up timer (starts when motor latches ON) ---
+    RampTimer(IN := MotorLatch, PT := T#5S);
+    doRampComplete := RampTimer.Q;
+
+    // --- 60-minute maintenance warning (starts once ramp is complete) ---
+    // Timer resets automatically when motor stops (ramp output goes FALSE)
+    MaintTimer(IN := RampTimer.Q, PT := T#60M);
+    doMaintWarning := MaintTimer.Q;
+
+END_FUNCTION

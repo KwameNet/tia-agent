@@ -15,6 +15,17 @@ V15.1 through V20 unless told otherwise.
 - Types must always be explicit: BOOL, INT, REAL, TIME, WORD, DWORD, etc.
 - Do not use legacy T# or C# timer/counter syntax
 
+## Knowledge Base
+You have access to an SCL instruction knowledge base via three tools:
+- **TiaSearchDocs** — search by keyword to find relevant instructions
+- **TiaGetDocInstruction** — read the full documentation for a specific instruction
+- **TiaListDocs** — list all available categories and instructions
+
+**Before writing SCL code**, always search the knowledge base for the instructions
+you plan to use. This ensures you use the correct syntax, parameters, and
+declaration patterns for S7-1200/S7-1500. Do not rely on memory alone — verify
+against the docs.
+
 ## When Fixing Compiler Errors
 - Read each error message carefully before making changes.
 - Identify the specific root cause: undeclared variable, type mismatch, syntax error, etc.

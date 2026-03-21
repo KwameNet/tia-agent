@@ -8,6 +8,7 @@ var builder = Host.CreateApplicationBuilder(args);
 // One TIA connection shared across all tool calls in a session.
 builder.Services.AddSingleton<TiaService>();
 builder.Services.AddSingleton<TiaReadService>();   // read-depth tools
+builder.Services.AddSingleton<KnowledgeBaseService>(); // SCL docs search
 
 // MCP server with stdio transport. Tools are discovered via reflection.
 builder.Services

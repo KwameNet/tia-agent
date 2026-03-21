@@ -14,10 +14,30 @@ packages/
 .vs/
 .idea/
 *.swp
+*.DotSettings.user
 
 # OS
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# Secrets / local overrides
+# Claude Code — local/user-specific
 .claude/settings.local.json
+.claude/worktrees/
+
+# Build logs / stray artifacts
+claude
+
+# SCL output (generated per-session, not source of truth)
+scl/
+
+# Python
+__pycache__/
+*.pyc
+
+# Source PDF (too large for git, referenced in docs)
+*.pdf
+
+# User-specific environment overrides
+.env
+.env.local
