@@ -38,7 +38,7 @@ TIA Portal Openness API ──▶ TIA Portal (V15.1 – V20)
 | Requirement | Details |
 |---|---|
 | **OS** | Windows 10/11 (64-bit) — TIA Openness is Windows-only |
-| **TIA Portal** | V15.1, V16, V17, V18, V19, or V20 — installed and licensed |
+| **TIA Portal** | V15.1 – V20 supported. **Tested and verified on V20.** Earlier versions should work but are not actively tested |
 | **TIA Openness** | Enabled in TIA Portal: **Options → Settings → General → Activate Siemens.Engineering API** |
 | **.NET SDK** | [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) or later (builds target .NET Framework 4.8) |
 | **Claude Code** | [Install Claude Code](https://docs.anthropic.com/en/docs/claude-code/getting-started) |
@@ -244,6 +244,14 @@ tia-agent/
 │   └── extract_scl_knowledge.py   # PDF → knowledge base extractor
 └── tia-agent.sln
 ```
+
+## Tested Environment
+
+- TIA Portal **V20** on Windows 11 Pro (64-bit)
+- .NET SDK 9.0 / .NET Framework 4.8
+- Claude Code with Claude Opus
+
+Earlier TIA Portal versions (V15.1–V19) are supported in code (version-resolved at runtime) but have not been tested. If you encounter issues on an older version, please open an issue.
 
 ## Known Limitations
 
