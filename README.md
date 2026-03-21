@@ -48,7 +48,7 @@ TIA Portal Openness API ──▶ TIA Portal (V15.1 – V20)
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/tia-agent.git
+git clone https://github.com/KwameNet/tia-agent.git
 cd tia-agent
 ```
 
