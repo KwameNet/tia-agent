@@ -28,6 +28,10 @@ desktop.ini
 # Build logs / stray artifacts
 claude
 
+# Docs — keep knowledge base, ignore everything else
+docs/*
+!docs/knowledge-base/
+
 # SCL output (generated per-session, not source of truth)
 scl/
 
