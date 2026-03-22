@@ -45,4 +45,20 @@ public static class ReadTools
         [Description("PLC device name.")] string plcName,
         [Description("Block name, e.g. 'MotorControl'.")] string blockName)
         => JsonSerializer.Serialize(read.GetBlockComments(plcName, blockName));
+
+    [McpServerTool, Description(
+        "Create or update PLC tags in a tag table. Creates the table if it does not exist. " +
+        "For each tag: if a tag with the same address exists it is renamed and updated; " +
+        "if a tag with the same name exists its address is updated; " +
+        "otherwise a new tag is created. " +
+        "Use this to define symbolic tag names for PLC I/O addresses.")]
+    public static string TiaSetTags(
+        TiaReadService read,
+        [Description("PLC device name.")] string plcName,
+        [Description("Tag table name. Created automatically if it does not exist.")] string tableName,
+        [Description(
+            "JSON array of tag definitions. Each entry: " +
+            "{ \"name\": \"S_Right\", \"dataType\": \"Bool\", \"address\": \"%I0.2\", \"comment\": \"\" }")]
+        string tagsJson)
+        => JsonSerializer.Serialize(read.SetTags(plcName, tableName, tagsJson));
 }

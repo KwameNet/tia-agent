@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json;
 
 namespace TiaMcpServer.Services
 {
@@ -14,6 +15,90 @@ namespace TiaMcpServer.Services
         public TiaReadService(TiaService tia)
         {
             _tia = tia;
+        }
+
+        // ── Tag Write ────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Creates or updates PLC tags in the specified tag table.
+        /// Creates the table if it does not exist.
+        /// For each entry: if a tag with the same address exists it is renamed/updated;
+        /// if a tag with the same name exists its address is updated;
+        /// otherwise a new tag is created.
+        /// tagsJson: JSON array of { name, dataType, address, comment } objects.
+        /// </summary>
+        public object SetTags(string plcName, string tableName, string tagsJson)
+        {
+            try
+            {
+                AssertProject();
+
+                var defs = JsonSerializer.Deserialize<TagDefinition[]>(tagsJson,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+                    ?? throw new Exception("tagsJson could not be parsed.");
+
+                var plcs = GetTargetPlcs(plcName).ToList();
+                if (plcs.Count == 0) throw new Exception($"PLC '{plcName}' not found.");
+                dynamic plcSw = plcs[0];
+
+                // ── Find or create the tag table ──────────────────────────────
+                dynamic tagTableGroup = plcSw.TagTableGroup;
+                dynamic? table = null;
+                foreach (dynamic t in tagTableGroup.TagTables)
+                {
+                    if (((string)t.Name).Equals(tableName, StringComparison.OrdinalIgnoreCase))
+                    { table = t; break; }
+                }
+                if (table == null)
+                {
+                    table = tagTableGroup.TagTables.Create(tableName);
+                    Console.Error.WriteLine($"[TIA] Created tag table '{tableName}'");
+                }
+
+                int created = 0, updated = 0;
+
+                foreach (var def in defs)
+                {
+                    // ── Find existing tag by address first, then by name ──────
+                    dynamic? existing = null;
+                    foreach (dynamic tag in table.Tags)
+                    {
+                        var addr = SafeString(() => (string)tag.LogicalAddress);
+                        var name = (string)tag.Name;
+                        if (addr.Equals(def.Address, StringComparison.OrdinalIgnoreCase) ||
+                            name.Equals(def.Name,    StringComparison.OrdinalIgnoreCase))
+                        { existing = tag; break; }
+                    }
+
+                    if (existing != null)
+                    {
+                        existing.Name          = def.Name;
+                        existing.DataTypeName  = def.DataType;
+                        existing.LogicalAddress = def.Address;
+                        Console.Error.WriteLine($"[TIA] Updated tag '{def.Name}' → {def.Address}");
+                        updated++;
+                    }
+                    else
+                    {
+                        // Try 3-arg Create first; fall back to 1-arg + property assignment
+                        try
+                        {
+                            table.Tags.Create(def.Name, def.DataType, def.Address);
+                        }
+                        catch
+                        {
+                            dynamic newTag = table.Tags.Create(def.Name);
+                            newTag.DataTypeName   = def.DataType;
+                            newTag.LogicalAddress = def.Address;
+                        }
+                        Console.Error.WriteLine($"[TIA] Created tag '{def.Name}' → {def.Address}");
+                        created++;
+                    }
+                }
+
+                return new { success = true, table = tableName, created, updated };
+            }
+            catch (Exception ex) { return Error(ex); }
         }
 
         // ── Tag Tables ───────────────────────────────────────────────────────
@@ -400,5 +485,13 @@ namespace TiaMcpServer.Services
 
         private static object Error(Exception ex)
             => new { success = false, error = ex.Message };
+    }
+
+    public class TagDefinition
+    {
+        public string Name     { get; set; } = "";
+        public string DataType { get; set; } = "Bool";
+        public string Address  { get; set; } = "";
+        public string Comment  { get; set; } = "";
     }
 }
